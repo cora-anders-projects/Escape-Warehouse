@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class conveyormove : MonoBehaviour
 {
-    public float moveSpeed = 0.0001f;
+    private float moveSpeed = 3;
     public float deadZone = -17;
 
  

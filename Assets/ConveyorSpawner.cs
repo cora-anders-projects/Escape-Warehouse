@@ -3,7 +3,7 @@ using UnityEngine;
 public class ConveyorSpawner : MonoBehaviour
 {
     public GameObject Conveyor;
-    public float spawnRate = 1.5f;
+    public float spawnRate = 10;
     private float timer = 0;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
