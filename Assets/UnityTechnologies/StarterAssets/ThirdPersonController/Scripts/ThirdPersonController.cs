@@ -98,6 +98,10 @@ namespace StarterAssets
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
 
+        // moving platforms
+        private Transform _movingPlatform;
+        private Vector3 _lastPlatformPosition;
+
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
 #endif
@@ -159,6 +163,7 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
+            HandleMovingPlatform(); // Add this line
         }
 
         private void LateUpdate()
@@ -188,6 +193,39 @@ namespace StarterAssets
             {
                 _animator.SetBool(_animIDGrounded, Grounded);
             }
+            // --- MOVING PLATFORM CLAUSE START ---
+            if (Grounded)
+            {
+                // Use a Raycast to find the specific transform we are standing on
+                if (Physics.Raycast(spherePosition, Vector3.down, out RaycastHit hit, GroundedRadius + 0.5f, GroundLayers))
+                {
+                    // If the object has the "MovingPlatform" tag, track it
+                    if (hit.collider.CompareTag("MovingPlatform"))
+                    {
+                        // If we just landed on a new platform, initialize the tracking
+                        if (_movingPlatform != hit.collider.transform)
+                        {
+                            _movingPlatform = hit.collider.transform;
+                            _lastPlatformPosition = _movingPlatform.position;
+                        }
+                    }
+                    else
+                    {
+                        // Standing on normal ground
+                        _movingPlatform = null;
+                    }
+                }
+                else
+                {
+                    _movingPlatform = null;
+                }
+            }
+            else
+            {
+                // In the air (jumping/falling), clear the platform
+                _movingPlatform = null;
+            }
+            // --- MOVING PLATFORM CLAUSE END ---
         }
 
         private void CameraRotation()
@@ -276,6 +314,21 @@ namespace StarterAssets
             {
                 _animator.SetFloat(_animIDSpeed, _animationBlend);
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
+            }
+            
+        }
+        private void HandleMovingPlatform()
+        {
+            if (_movingPlatform != null)
+            {
+                // Calculate how far the platform has moved since the last frame
+                Vector3 platformTranslation = _movingPlatform.position - _lastPlatformPosition;
+
+                // Move the CharacterController by that exact amount
+                _controller.Move(platformTranslation);
+
+                // Update the last position for the next frame's calculation
+                _lastPlatformPosition = _movingPlatform.position;
             }
         }
 
@@ -389,4 +442,5 @@ namespace StarterAssets
             }
         }
     }
+
 }
