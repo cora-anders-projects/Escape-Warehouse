@@ -163,7 +163,7 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
-            HandleMovingPlatform(); // Add this line
+            //HandleMovingPlatform(); // Add this line
         }
 
         private void LateUpdate()
@@ -302,33 +302,39 @@ namespace StarterAssets
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
-
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
-                             new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            // --- MERGED PLATFORM LOGIC ---
+            Vector3 platformTranslation = Vector3.zero;
+
+            // Check if we are on a platform AND if it has the correct tag
+            if (_movingPlatform != null && _movingPlatform.CompareTag("MovingPlatform"))
+            {
+                // IMPORTANT: Replace 'YourPlatformScript' with the actual name of the script on your platform
+                if (_movingPlatform.gameObject.TryGetComponent<MovingMover1>(out var platformScript))
+                {
+                    // IMPORTANT: Replace 'platformMoveDirection' and 'platformMoveSpeed' with your actual variable names
+                    Vector3 direction = Vector3.forward;
+                    float speed = platformScript.speed;
+
+                    // Calculate the velocity of the platform
+                    platformTranslation = direction.normalized * speed;
+                }
+            }
+
+            // move the player (Player Movement + Gravity/Jump + Moving Platform)
+            // We multiply platformTranslation by Time.deltaTime here so it scales smoothly with framerate
+            _controller.Move(
+                (targetDirection.normalized * (_speed * Time.deltaTime)) +
+                (new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime) +
+                (platformTranslation * Time.deltaTime)
+            );
 
             // update animator if using character
             if (_hasAnimator)
             {
                 _animator.SetFloat(_animIDSpeed, _animationBlend);
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
-            }
-            
-        }
-        private void HandleMovingPlatform()
-        {
-            if (_movingPlatform != null)
-            {
-                // Calculate how far the platform has moved since the last frame
-                Vector3 platformTranslation = _movingPlatform.position - _lastPlatformPosition;
-
-                // Move the CharacterController by that exact amount
-                _controller.Move(platformTranslation);
-
-                // Update the last position for the next frame's calculation
-                _lastPlatformPosition = _movingPlatform.position;
             }
         }
 

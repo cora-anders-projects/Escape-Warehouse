@@ -3,7 +3,7 @@ using UnityEngine;
 public class MovingMover1 : MonoBehaviour
 {
     // Adjust these in the Inspector to control speed and range
-    public float speed = 2.0f;
+    public float speed = 3.0f;
     public float range = 4.0f;
 
     private Vector3 startPosition;
